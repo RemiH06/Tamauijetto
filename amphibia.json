@@ -1,0 +1,32 @@
+{
+  "stages": [
+    { "name": "egg", "requiredCommits": 3, "phaseNumber": 0, "probabilities": { "baby1": 0.8, "baby2": 0.2 } },
+    { "name": "baby1", "requiredCommits": 5, "phaseNumber": 1, "probabilities": { "child": 0.7, "baby2": 0.3 } },
+    { "name": "baby2", "requiredCommits": 5, "phaseNumber": 1, "probabilities": { "child": 0.5, "teen": 0.5 } },
+    { "name": "child", "requiredCommits": 8, "phaseNumber": 2, "probabilities": { "teen": 0.6, "final1": 0.4 } },
+    { "name": "teen", "requiredCommits": 12, "phaseNumber": 3, "probabilities": { "final1": 0.5, "final2": 0.5 } },
+    { "name": "final1", "requiredCommits": 20, "phaseNumber": 4, "probabilities": {} },
+    { "name": "final2", "requiredCommits": 20, "phaseNumber": 4, "probabilities": {} }
+  ],
+  "egg": {
+    "asciiArt": "Egg"
+  },
+  "baby1": {
+    "asciiArt": "o.o"
+  },
+  "baby2": {
+    "asciiArt": "u.u"
+  },
+  "child": {
+    "asciiArt": "o-o"
+  },
+  "teen": {
+    "asciiArt": "(o)__(o)"
+  },
+  "final1": {
+    "asciiArt": "(o)w(o)"
+  },
+  "final2": {
+    "asciiArt": "(o)m(o)"
+  }
+}
