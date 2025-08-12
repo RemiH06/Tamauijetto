@@ -1,0 +1,61 @@
+name: Tamagotchi
+
+on:
+  workflow_dispatch:
+    inputs:
+      user:
+        description: 'GitHub username'
+        required: true
+        default: 'HectorH06'
+      repo:
+        description: 'GitHub repository name'
+        required: true
+        default: 'tamauijetto'
+      date:
+        description: 'Start date for commits'
+        required: true
+        default: '2025-01-01T00:00:00Z'
+      json:
+        description: 'JSON file for Tamagotchi data'
+        required: true
+        default: 'amphibia.json'
+      color1:
+        description: 'Color for Tamagotchi'
+        required: true
+        default: '#FFFF00'
+      color2:
+        description: 'Color for details'
+        required: true
+        default: '#00FFFF'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v2
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Ejecutar script para generar imagen
+        run: |
+          node widgetArtifact.mjs "${{ github.event.inputs.user }}" "${{ github.event.inputs.repo }}" "${{ github.event.inputs.date }}" "${{ github.event.inputs.json }}" "${{ github.event.inputs.color1 }}" "${{ github.event.inputs.color2 }}"
+
+      - name: Crear carpeta para imágenes
+        run: mkdir -p tamauijetto
+
+      - name: Mover imagen generada a la carpeta tamauijetto
+        run: mv tamagotchi_output.png tamauijetto/tamagotchi_output.png
+
+      - name: Subir imagen como artefacto
+        uses: actions/upload-artifact@v2
+        with:
+          name: tamagotchi-image
+          path: tamauijetto/tamagotchi_output.png  # Ahora está dentro de la carpeta tamauijetto
