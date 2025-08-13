@@ -1,142 +1,69 @@
 import fs from 'fs';
 import path from 'path';
-import { Octokit } from '@octokit/core';
-import fetch from 'node-fetch';
-import chalk from 'chalk';
-import { createCanvas } from 'canvas'; // Para generar imágenes
-import terminalImage from 'terminal-image'; // Para convertir el arte ASCII a imagen
+import { createCanvas } from 'canvas';
+import terminalImage from 'terminal-image';
+import { loadTamagotchiData, getCommits, evolveTamagotchi } from './tamagotchi.mjs';
 
-const token = fs.readFileSync('.secrets', 'utf8').trim();
+// Función para generar imagen desde ASCII
+async function generateImageFromAscii(asciiArt, filePath) {
+  const lines = asciiArt.split('\n');
+  const lineHeight = 20;       // tamaño de fuente en px
+  const charWidth = 12;        // ancho aproximado de cada caracter
+  const canvasWidth = Math.max(...lines.map(l => l.length)) * charWidth;
+  const canvasHeight = lines.length * lineHeight;
 
-// Octokit
-const octokit = new Octokit({ 
-  auth: token,
-  request: { fetch }
-});
-
-// Función para leer datos de un archivo JSON
-function loadTamagotchiData(filePath) {
-  if (fs.existsSync(filePath)) {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } else {
-    console.log(`File not found: ${filePath}`);
-    return null;
-  }
-}
-
-// Fecha de comienzo desde la qué jalar commits
-async function getCommits(user, repo = '', since = '2025-01-01T00:00:00Z') {
-  let commits = [];
-
-  if (repo !== '') {
-    let response = await octokit.request('GET /repos/{owner}/{repo}/commits', {
-      owner: user,
-      repo: repo,
-      since: since
-    });
-    commits = response.data;
-  } else {
-    const events = await octokit.request('GET /users/{username}/events/public', {
-      username: user,
-    });
-
-    const pushEvents = events.data.filter(event => event.type === 'PushEvent');
-
-    for (let event of pushEvents) {
-      const repoName = event.repo.name;
-
-      if (repoName) {
-        console.log(`Obteniendo commits del repositorio: ${repoName}`);
-
-        let response = await octokit.request('GET /repos/{owner}/{repo}/commits', {
-          owner: user,
-          repo: repoName,
-          since: since
-        });
-        
-        if (response.data.length > 0) {
-          commits = commits.concat(response.data);
-        }
-      }
-    }
-  }
-
-  console.log(`Commits count since ${since}: ${commits.length}`);
-  return commits;
-}
-
-//* Bienvenido al mundo, Tamagotchi
-function evolveTamagotchi(commits, tamagotchiData, tamagotchiName, tamagotchiColor, detailsColor) {
-  let currentStage = 'egg';
-  let totalCommits = commits.length;
-
-  console.log(`Total Commits: ${totalCommits}`);
-  console.log(chalk.hex(tamagotchiColor)(tamagotchiData[currentStage].asciiArt));
-
-  for (let i = 0; i < tamagotchiData.stages.length; i++) {
-    const stage = tamagotchiData.stages[i];
-
-    if (totalCommits >= stage.requiredCommits && currentStage === stage.name) {
-      console.log(chalk.hex(detailsColor)(`\nEvolving from ${currentStage} to next phase...`));
-
-      if (stage.probabilities) {
-        const probabilities = stage.probabilities;
-        const random = Math.random();
-        let cumulativeProbability = 0;
-
-        for (let nextStage in probabilities) {
-          cumulativeProbability += probabilities[nextStage];
-          if (random < cumulativeProbability) {
-            currentStage = nextStage;
-            break;
-          }
-        }
-      } else {
-        break;
-      }
-
-      console.log(chalk.hex(tamagotchiColor)(tamagotchiData[currentStage].asciiArt));
-    }
-  }
-
-  console.log(chalk.hex(detailsColor)(`\nSpecies: ${tamagotchiName}`));
-  console.log(chalk.hex(detailsColor)(`Stage: ${currentStage}`));
-  console.log(chalk.hex(detailsColor)(`Total Commits: ${totalCommits}`));
-
-  return tamagotchiData[currentStage].asciiArt;
-}
-
-// Función para generar una imagen desde el arte ASCII
-async function generateImageFromAscii(asciiArt, user, repo, date, json, color1, color2) {
-  // Crear un nombre único para el archivo basado en los parámetros
-  const fileName = `tamauijetto/tamagotchi_${user}_${repo}_${date}_${json}_${color1}_${color2}.png`;
-  
-  const canvas = createCanvas(600, 300);
+  // 1. Canvas ajustado al ASCII
+  const canvas = createCanvas(canvasWidth, canvasHeight);
   const ctx = canvas.getContext('2d');
-  ctx.font = '20px monospace';
-  ctx.fillText(asciiArt, 10, 50);
-  const buffer = canvas.toBuffer('image/png');
-  fs.writeFileSync(fileName, buffer); // Guardar la imagen en la carpeta tamauijetto con un nombre único
+
+  ctx.font = `${lineHeight}px monospace`;
+  ctx.fillStyle = '#FFFFFF';  // fondo blanco
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  ctx.fillStyle = '#000000';  // color del ASCII
+
+  lines.forEach((line, index) => {
+    ctx.fillText(line, 0, lineHeight * (index + 0.9)); // 0.9 para alinear vertical
+  });
+
+  // 2. Canvas final cuadrado de 256x256
+  const finalSize = 256;
+  const finalCanvas = createCanvas(finalSize, finalSize);
+  const fCtx = finalCanvas.getContext('2d');
+
+  // fondo blanco
+  fCtx.fillStyle = '#FFFFFF';
+  fCtx.fillRect(0, 0, finalSize, finalSize);
+
+  // calcular escala para encajar ASCII en 256x256
+  const scale = Math.min(finalSize / canvasWidth, finalSize / canvasHeight);
+
+  fCtx.scale(scale, scale);
+  fCtx.drawImage(canvas, 0, 0);
+
+  // guardar archivo
+  const buffer = finalCanvas.toBuffer('image/png');
+  fs.writeFileSync(filePath, buffer);
 }
 
-// Función principal que toma parámetros para ejecutar el código
-async function main(user, repo = '', startDate = '2025-01-01T00:00:00Z', tamagotchiFile = 'tamagotchiData.json', tamagotchiColor = '#FFFF00', detailsColor = '#00FFFF') {
-  // Cargar los datos del Tamagotchi desde el archivo JSON especificado
-  const tamagotchiData = loadTamagotchiData(tamagotchiFile);
+// Función que ejecuta todo
+export async function runWidget(user, repo = '', date = '2025-01-01T00_00_00Z', jsonFile = 'amphibia.json', color1 = 'FFFF00', color2 = '00FFFF') {
+  const tamagotchiData = loadTamagotchiData(jsonFile);
   if (!tamagotchiData) return;
 
-  const tamagotchiName = path.basename(tamagotchiFile, '.json');
+  const commits = await getCommits(user, repo, date);
 
-  // Obtener los commits desde la fecha y repositorio especificados
-  const commits = await getCommits(user, repo, startDate);
+  // Evolución en consola
+  evolveTamagotchi(commits, tamagotchiData, path.basename(jsonFile, '.json'), color1, color2);
 
-  // Evolucionar el Tamagotchi basándose en los commits
-  const finalAsciiArt = evolveTamagotchi(commits, tamagotchiData, tamagotchiName, tamagotchiColor, detailsColor);
+  // Generar nombre de archivo seguro
+  const safeFileName = `tamagotchi_${user}_${repo}_${date}_${jsonFile}_${color1}_${color2}.png`;
+  const filePath = path.join('tamauijetto', safeFileName);
 
-  // Generar el nombre único para la imagen y guardarla
-  await generateImageFromAscii(finalAsciiArt, user, repo, startDate, tamagotchiFile, tamagotchiColor, detailsColor);
+  // Evolución en consola y obtener ASCII final
+  const finalAscii = evolveTamagotchi(commits, tamagotchiData, path.basename(jsonFile, '.json'), color1, color2);
 
-  console.log("Imagen generada: " + `tamauijetto/tamagotchi_${user}_${repo}_${startDate}_${tamagotchiFile}_${tamagotchiColor}_${detailsColor}.png`);
+  // Generar imagen con el ASCII final
+  await generateImageFromAscii(finalAscii, filePath);
 }
 
-main('HectorH06', 'Mapo', '2025-01-01T00:00:00Z', 'amphibia.json', '#FFFF00', '#00FFFF');
+runWidget('HectorH06', 'Mapo', '2025-01-01T00_00_00Z', 'amphibia.json', 'FFFF00', '00FFFF');
