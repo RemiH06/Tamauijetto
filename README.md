@@ -57,9 +57,6 @@ Tamagotchis are configured using a JSON file. Example: amphibia.json
 - Compatible with GitHub Actions to update the image automatically.
 - Support for more GitHub events (issues, pull requests).
 
-![Tamagotchi Widget](https://github.com/HectorH06/tamauijetto/actions/workflows/widget.yml/badge.svg)
+![Tamagotchi](https://raw.githubusercontent.com/HectorH06/tamauijetto/main/tamauijetto/tamagotchi_HectorH06_Mapo_2025-01-01T00_00_00Z_amphibia.json_FFFF00_00FFFF_000000.png)
 
-![Tamagotchi](https://raw.githubusercontent.com/HectorH06/tamauijetto/main/tamauijetto/tamagotchi_HectorH06_Mapo_2025-01-01T00_00_00Z_amphibia.json_FFFF00_00FFFF.png)
-
-![Tamagotchi](tamauijetto/tamagotchi_HectorH06_Mapo_2025-01-01T00_00_00Z_amphibia.json_FFFF00_00FFFF.png)
-
+![Tamagotchi](https://raw.githubusercontent.com/HectorH06/tamauijetto/main/tamauijetto/tamagotchi_HectorH06_Mapo_2025-01-01T00_00_00Z_amphibia.json_FFFF00_314131ff_5c7d5cff.png)
