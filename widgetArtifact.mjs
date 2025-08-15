@@ -4,8 +4,8 @@ import { createCanvas } from 'canvas';
 import terminalImage from 'terminal-image';
 import { loadTamagotchiData, getCommits, evolveTamagotchi } from './tamagotchi.mjs';
 
-// Función para generar imagen desde ASCII y texto extra
-async function generateImageFromAscii(asciiArt, textLines = [], filePath, textColor = '#000000', bgColor = '#FFFFFF') {
+// Función para generar imagen desde ASCII y texto extra con colores diferenciados
+async function generateImageFromAscii(asciiArt, textLines = [], filePath, asciiColor = '#000000', textColor = '#FFFFFF', bgColor = '#FFFFFF') {
   const lines = asciiArt.split('\n');
   const lineHeight = 20;  // tamaño de fuente en px
   const charWidth = 12;   // ancho aproximado de cada caracter
@@ -23,15 +23,16 @@ async function generateImageFromAscii(asciiArt, textLines = [], filePath, textCo
 
   // ASCII
   ctx.font = `${lineHeight}px monospace`;
-  ctx.fillStyle = textColor;
+  ctx.fillStyle = asciiColor;
 
   lines.forEach((line, index) => {
-    ctx.fillText(line, 0, lineHeight * (index + 0.9));
+    ctx.fillText(line, 0, lineHeight * (index + 0.9));  // 0.9 para alinear vertical
   });
 
   // Texto adicional debajo del ASCII
   textLines.forEach((line, index) => {
-    ctx.fillText(line, 0, lineHeight * (lines.length + index + 1.5));
+    ctx.fillStyle = textColor;  // Cambiar color de texto
+    ctx.fillText(line, 0, lineHeight * (lines.length + index + 1.5));  // Ajustar para poner texto debajo del ASCII
   });
 
   // 2. Canvas final cuadrado de 256x256
@@ -74,13 +75,13 @@ export async function runWidget(user, repo = '', date = '2025-01-01T00_00_00Z', 
     `Total Commits: ${totalCommits}`
   ];
 
-  // Generar nombre seguro de archivo
+  // Crear nombre de archivo seguro
   const safeFileName = `tamagotchi_${user}_${repo}_${date}_${jsonFile}_${color1}_${color2}_${bgColor}.png`;
   const filePath = path.join('tamauijetto', safeFileName);
 
-  // Generar imagen final con ASCII + texto + fondo
-  await generateImageFromAscii(finalAscii, textLines, filePath, `#${color2}`, `#${bgColor}`);
+  // Generar imagen final con colores diferenciados
+  await generateImageFromAscii(finalAscii, textLines, filePath, `#${color1}`, `#${color2}`, `#${bgColor}`);
 }
 
 // Ejemplo de ejecución
-runWidget('HectorH06', 'Mapo', '2025-01-01T00_00_00Z', 'amphibia.json', 'FFFF00', '314131ff', '5c7d5cff');
+runWidget('HectorH06', 'Mapo', '2025-01-01T00_00_00Z', 'amphibia.json', '314131ff', '314131ff', '5c7d5cff');
