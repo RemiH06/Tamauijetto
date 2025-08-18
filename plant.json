@@ -1,0 +1,33 @@
+{
+  "stages": [
+    { "name": "egg", "requiredCommits": 3, "phaseNumber": 0, "probabilities": { "baby": 1} },
+    { "name": "baby", "requiredCommits": 5, "phaseNumber": 1, "probabilities": { "child": 1} },
+    { "name": "child", "requiredCommits": 8, "phaseNumber": 2, "probabilities": { "teen": 0.7, "astralAxolotl": 0.3 } },
+    { "name": "teen", "requiredCommits": 12, "phaseNumber": 3, "probabilities": { "wizardFrog": 0.5, "kingSalamander": 0.5 } },
+    { "name": "astralAxolotl", "requiredCommits": 20, "phaseNumber": 3, "probabilities": {} },
+    { "name": "wizardFrog", "requiredCommits": 20, "phaseNumber": 4, "probabilities": {} },
+    { "name": "kingSalamander", "requiredCommits": 20, "phaseNumber": 4, "probabilities": {} }
+  ],
+  "egg": {
+    "asciiArt": ""
+  },
+  "baby": {
+    "asciiArt": ""
+
+  },
+  "child": {
+    "asciiArt": ""
+  },
+  "teen": {
+    "asciiArt": ""
+  },
+  "astralAxolotl": {
+    "asciiArt": ""
+  },
+  "wizardFrog": {
+    "asciiArt": ""
+  },
+  "kingSalamander": {
+    "asciiArt": ""
+  }
+}
