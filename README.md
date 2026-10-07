@@ -10,6 +10,8 @@
        by Hex (@RemiH06)          version 2.0
 ```
 
+![GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)
+
 ![Tamagotchi](https://raw.githubusercontent.com/RemiH06/Tamauijetto/pet/tamagotchi.svg)
 
 ## Resumen
