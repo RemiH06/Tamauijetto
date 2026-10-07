@@ -1,4 +1,4 @@
-![Build with Love](http://ForTheBadge.com/images/badges/built-with-love.svg)
+![Built with Love](https://forthebadge.com/images/badges/built-with-love.svg)
 
 ```ascii
 ████████╗ █████╗ ███╗   ███╗ █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗████████╗ ██████╗ 
@@ -7,56 +7,75 @@
    ██║   ██╔══██║██║╚██╔╝██║██╔══██║██║   ██║██║██   ██║██╔══╝     ██║      ██║   ██║   ██║
    ██║   ██║  ██║██║ ╚═╝ ██║██║  ██║╚██████╔╝██║╚█████╔╝███████╗   ██║      ██║   ╚██████╔╝
    ╚═╝   ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝ ╚════╝ ╚══════╝   ╚═╝      ╚═╝    ╚═════╝ 
-
-       by Hex (@RemiH06)          version 1.0
+       by Hex (@RemiH06)          version 2.0
 ```
 
-### General Description
+![Tamagotchi](https://raw.githubusercontent.com/RemiH06/Tamauijetto/pet/tamagotchi.svg)
 
-Tamauijetto is a small digital "Tamagotchi" that evolves based on a GitHub user's activity.
-It uses ASCII art contained in a json file, and then uses it to generate a PNG image that can be embedded in a README, webpage, or widget.
+## Resumen
+
+### Descripción general
+
+Tamauijetto es un tamagotchi que vive de tu actividad en GitHub. Cada push, commit y pull request es comida; con suficiente comida evoluciona por las etapas de su especie, y algunas ramas de evolución se deciden al azar. Si pasa demasiado tiempo sin comer, primero tiene hambre, luego se muere de hambre y al final muere. La siguiente actividad después de su muerte hace nacer un huevo nuevo de la siguiente generación.
+
+Un workflow de GitHub Actions lo revisa cada hora y publica una tarjeta SVG (piel `sherry` de iroFactory) en la rama `pet`, lista para incrustarse en cualquier README.
 
 ```diff
-- Requires a GitHub personal access token with read access to public repos.
+- La API de eventos de GitHub solo guarda 90 días y hasta 300 eventos; el estado recuerda lo que ya se comió, así que el workflow tiene que correr seguido.
+- Sin el secreto TAMA_TOKEN solo cuenta la actividad pública.
+- GitHub pausa los workflows programados de un repo sin actividad en 60 días.
 ```
 
 ## Installation
 
-1. Install requirements with the following command :
+1. Clona el repo (Node 20.12 o más reciente, sin dependencias):
 
-   `git clone https://github.com/HectorH06/tamauijetto.git`
-   `cd tamauijetto`
+   ```bash
+   git clone https://github.com/RemiH06/Tamauijetto.git
+   cd Tamauijetto
+   ```
 
-2. Install Node.js dependencies:
+2. Ajusta `tamauijetto.config.json`:
 
-   `npm install`
+   | Campo | Qué hace |
+   |---|---|
+   | `user` | Usuario de GitHub cuya actividad lo alimenta. |
+   | `repo` | `null` para toda la actividad, o un nombre (`Mapo` u `owner/Mapo`) para un solo repo. |
+   | `species` | Archivo de `species/` sin `.json`. |
+   | `bornAt` | `null` nace ahora; una fecha ISO hace que nazca antes y se coma la actividad desde ahí. |
+   | `petColor` | Token de sherry (`lime`, `cyan`, `magenta`, `violet`, `electric`, `lavender`) o un hex. |
+   | `hours` | Horas sin comer para `hungry`, `starving` y `dead`. |
+   | `food` | Comida por `push`, por `commit` (máximo `commitCap` por push), por PR abierto (`pullRequest`) y por PR mergeado (`merge`). |
 
-3. Add your GitHub token:
+3. Opcional: para contar actividad privada, crea un token personal con lectura de eventos y guárdalo como secreto `TAMA_TOKEN` del repo.
 
-Create a .secrets file in the project root with your token:
+4. Activa el workflow `tamagotchi` en la pestaña Actions y córrelo una vez a mano. A partir de ahí corre cada hora.
 
-   `github_XXXXXXXXXXXXXXXXXXXXXXX...`
+5. Incrusta la tarjeta donde quieras:
 
-4. Optional: prepare a Tamagotchi JSON file:
+   ```markdown
+   ![Tamagotchi](https://raw.githubusercontent.com/<usuario>/<repo>/pet/tamagotchi.svg)
+   ```
 
-Tamagotchis are configured using a JSON file. Example: amphibia.json
+## Launch arguments
 
-5. Run the script:
+Para correrlo en local, el token sale de la variable `GITHUB_TOKEN` o del archivo `.secrets`.
 
-   `node widgetArtifact.mjs <user> <repo> <startDate> <tamagotchiJSON> <color1> <color2>`
-   `node widgetArtifact.mjs HectorH06 Mapo 2025_01_01T00_00_00Z amphibia.json FFFF00 00FFFF`
+- `npm start` una pasada real: lee eventos, alimenta y escribe `out/pet.json` y `out/tamagotchi.svg`.
+- `npm run preview` dibuja en `out/preview/` una tarjeta por etapa y una por estado de ánimo, sin red. Sirve para diseñar especies.
 
 ## Features
 
-- Tamagotchi evolves based on GitHub commits.
-- ASCII art in console and PNG image generation.
-- Supports custom colors for ASCII art and details.
+- Comida por push, commit y pull request, configurable.
+- Hambre, agonía y muerte por inactividad; renace como nueva generación.
+- Evolución con ramas aleatorias que se deciden una sola vez y quedan guardadas.
+- Tarjeta SVG con la piel `sherry` de iroFactory, modo claro u oscuro según el sistema y animación que respeta `prefers-reduced-motion`.
+- Especies como JSON en `species/`: etapas, comida para evolucionar, probabilidades y arte ASCII.
 
 ## Future Features
 
-- Compatible with GitHub Actions to update the image automatically.
-- Support for more GitHub events (issues, pull requests).
+- Más especies (`plant` ya tiene etapas, falta el arte).
 
-![Tamagotchi](https://raw.githubusercontent.com/HectorH06/tamauijetto/main/tamauijetto/tamagotchi_HectorH06_Mapo_2025-01-01T00_00_00Z_amphibia.json_FFFF00_00FFFF_000000.png)
+## Autoría
 
-![Tamagotchi](https://raw.githubusercontent.com/HectorH06/tamauijetto/main/tamauijetto/tamagotchi_HectorH06_Mapo_2025-01-01T00_00_00Z_amphibia.json_314131ff_314131ff_5c7d5cff.png)
+por Hex ([@RemiH06](https://github.com/RemiH06))

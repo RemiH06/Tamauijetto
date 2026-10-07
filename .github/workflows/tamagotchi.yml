@@ -1,0 +1,50 @@
+name: tamagotchi
+
+# Cada hora: lee la actividad nueva, alimenta a la mascota (o la deja
+# morir) y publica out/ en la rama `pet`. Esa rama es un solo commit que se
+# reescribe en cada pasada, así main no se llena de commits del bot.
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tamagotchi
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Traer el estado anterior
+        run: |
+          mkdir -p out
+          if git fetch -q --depth=1 origin pet; then
+            git show FETCH_HEAD:pet.json > out/pet.json
+          else
+            echo "Sin rama pet todavía: nace un huevo nuevo."
+          fi
+
+      - name: Alimentar y dibujar
+        run: node src/index.js
+        env:
+          # TAMA_TOKEN (PAT opcional) suma la actividad privada; sin él, solo la pública.
+          GITHUB_TOKEN: ${{ secrets.TAMA_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Publicar en la rama pet
+        working-directory: out
+        run: |
+          git init -q -b pet
+          git add pet.json tamagotchi.svg
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "feed: $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" pet
