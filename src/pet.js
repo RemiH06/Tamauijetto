@@ -4,11 +4,32 @@
 const HOUR = 3_600_000;
 const iso = (ms) => new Date(ms).toISOString();
 
+// Estándar común a todas las especies: cada cuadro es una cuadrícula de
+// size×size con '.' vacío, '#' cuerpo y '*' detalle. Mismo tamaño de píxel
+// en todas las etapas, así el crecimiento se ve.
+export const SPRITE_SIZE = 32;
+
+function validateSprite(sprite, where) {
+  const frames = sprite?.frames;
+  if (!Array.isArray(frames) || frames.length === 0) throw new Error(`${where}: no tiene frames.`);
+  frames.forEach((frame, f) => {
+    if (!Array.isArray(frame) || frame.length !== SPRITE_SIZE) throw new Error(`${where}, cuadro ${f}: debe tener ${SPRITE_SIZE} filas.`);
+    frame.forEach((row, r) => {
+      if (typeof row !== 'string' || !new RegExp(`^[.#*]{${SPRITE_SIZE}}$`).test(row)) {
+        throw new Error(`${where}, cuadro ${f}, fila ${r}: deben ser ${SPRITE_SIZE} caracteres entre . # *`);
+      }
+    });
+  });
+  const timing = sprite.timing ?? [1];
+  if (timing.length !== frames.length || !timing.every((t) => t > 0)) throw new Error(`${where}: "timing" necesita un número positivo (segundos) por cuadro.`);
+}
+
 export function validateSpecies(species, id) {
   if (!Array.isArray(species.stages) || species.stages.length === 0) throw new Error(`La especie ${id} no tiene etapas.`);
+  if (species.size !== SPRITE_SIZE) throw new Error(`La especie ${id} debe declarar "size": ${SPRITE_SIZE}.`);
   const names = new Set(species.stages.map((s) => s.name));
   for (const stage of species.stages) {
-    if (!species[stage.name]?.asciiArt?.trim()) throw new Error(`La especie ${id} no tiene asciiArt para la etapa "${stage.name}".`);
+    validateSprite(species.sprites?.[stage.name], `La especie ${id}, etapa "${stage.name}"`);
     for (const next of Object.keys(stage.probabilities ?? {})) {
       if (!names.has(next)) throw new Error(`La especie ${id} evoluciona de "${stage.name}" a "${next}", que no existe.`);
     }

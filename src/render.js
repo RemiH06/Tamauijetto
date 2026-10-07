@@ -1,3 +1,5 @@
+import { SPRITE_SIZE } from './pet.js';
+
 // Tarjeta SVG con la piel de iroFactory · sherry: neón sobre negro casi
 // puro, monoespaciada, glow en oscuro y scanlines de CRT. Los tokens son
 // los de 37.iroFactory/sherry/sherry.css (oscuro default, claro por
@@ -22,9 +24,20 @@ const MOODS = {
   dead: { color: 'text3', label: 'murió de hambre' },
 };
 
-const TOMBSTONE = '   _____\n  /     \\\n |  RIP  |\n |       |\n |  x_x  |\n_|_______|_';
+// Lápida de 32×32 para cuando muere: piedra redondeada con cruz hueca.
+const TOMBSTONE = {
+  timing: [1],
+  frames: [Array.from({ length: SPRITE_SIZE }, (_, y) => Array.from({ length: SPRITE_SIZE }, (_, x) => {
+    if (y === 30 && x >= 4 && x <= 27) return '*';
+    const stone = (y >= 16 && y <= 29 && x >= 9 && x <= 22) || (y < 16 && (x - 15.5) ** 2 + (y - 16) ** 2 <= 6.8 ** 2);
+    const cross = (x >= 15 && x <= 16 && y >= 12 && y <= 22) || (y >= 15 && y <= 16 && x >= 12 && x <= 19);
+    return stone && !cross ? '#' : '.';
+  }).join(''))],
+};
 
-const W = 520, H = 232, FONT = 14, CHAR = FONT * 0.6, LINE = FONT * 1.15;
+// Pantalla LCD: cada píxel del sprite es un cuadro de 4 px con 1 px de
+// separación, igual en todas las etapas y especies.
+const W = 520, H = 232, PX = 5, LCD = { x: 46, y: 49 };
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const vars = (t) => Object.entries(t).map(([k, v]) => `--${k}:${v}`).join(';');
@@ -35,23 +48,39 @@ function ago(hours) {
   return `hace ${Math.floor(hours / 24)} d`;
 }
 
-// El braille en blanco (U+2800) se ve como puntitos en algunas fuentes;
-// un espacio normal ocupa el mismo ancho en una monoespaciada.
-function asciiBlock(art, box) {
-  const lines = art.replace(/⠀/g, ' ').split('\n');
-  const w = Math.max(...lines.map((l) => [...l].length)) * CHAR;
-  const h = lines.length * LINE;
-  const rows = lines.map((l, i) => `<text x="0" y="${((i + 0.85) * LINE).toFixed(1)}">${esc(l)}</text>`).join('');
-  return `<svg x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" viewBox="0 0 ${w.toFixed(1)} ${h.toFixed(1)}" preserveAspectRatio="xMidYMid meet"><g class="pet">${rows}</g></svg>`;
+// Un path por tono: un cuadro "M x y h4 v4 h-4 z" por píxel encendido.
+function pixels(frame, ch) {
+  let d = '';
+  frame.forEach((row, y) => [...row].forEach((c, x) => { if (c === ch) d += `M${x * PX} ${y * PX}h4v4h-4z`; }));
+  return d;
 }
 
-export function renderCard({ pet, mood, species, speciesName, petColor, now }) {
+// Cuadros que se alternan con opacidad en step-end; el primero es el que
+// queda fijo con prefers-reduced-motion o sin soporte de animación.
+function spriteBlock({ frames, timing = [1] }) {
+  const total = timing.reduce((a, b) => a + b, 0);
+  let t = 0;
+  const css = frames.length < 2 ? '' : timing.map((d, i) => {
+    const s = (t / total) * 100, e = ((t += d) / total) * 100;
+    return `@keyframes f${i}{0%{opacity:${s === 0 ? 1 : 0}}${s > 0 ? `${s.toFixed(2)}%{opacity:1}` : ''}${e < 100 ? `${e.toFixed(2)}%{opacity:0}` : ''}}.f${i}{animation:f${i} ${+total.toFixed(2)}s step-end infinite}`;
+  }).join('');
+  const groups = frames.map((frame, i) =>
+    `<g class="frame f${i}"><path class="body" d="${pixels(frame, '#')}"/><path class="detail" d="${pixels(frame, '*')}"/></g>`).join('');
+  return { css, svg: `<g transform="translate(${LCD.x} ${LCD.y})"><rect class="ghost" width="${SPRITE_SIZE * PX}" height="${SPRITE_SIZE * PX}"/><g class="pet">${groups}</g></g>` };
+}
+
+export function terminalArt(frame) {
+  return frame.map((row) => row.replace(/\./g, ' ').replace(/#/g, '█').replace(/\*/g, '▒').trimEnd()).join('\n');
+}
+
+const color = (c) => (c.startsWith('#') ? c : `var(--${c})`);
+
+export function renderCard({ pet, mood, species, speciesName, petColor, detailColor, now }) {
   const m = MOODS[mood.state];
   const stage = species.stages.find((s) => s.name === pet.stage);
   const terminal = !Object.keys(stage.probabilities ?? {}).length;
-  const art = pet.diedAt ? TOMBSTONE : species[pet.stage].asciiArt;
+  const sprite = spriteBlock(pet.diedAt ? TOMBSTONE : species.sprites[pet.stage]);
   const ageDays = Math.floor((now - Date.parse(pet.bornAt)) / 86_400_000);
-  const petVar = petColor.startsWith('#') ? petColor : `var(--${petColor})`;
 
   const rows = [
     ['etapa', pet.stage],
@@ -72,7 +101,7 @@ export function renderCard({ pet, mood, species, speciesName, petColor, now }) {
 <title id="t">Tamauijetto · ${esc(speciesName)}</title>
 <desc id="d">${esc(summary)}</desc>
 <style>
-svg{${vars(TOKENS.dark)};--mood:var(--${m.color});--petc:${pet.diedAt ? 'var(--text3)' : petVar}}
+svg{${vars(TOKENS.dark)};--mood:var(--${m.color});--petc:${pet.diedAt ? 'var(--text3)' : color(petColor)};--detc:${pet.diedAt ? 'var(--text3)' : color(detailColor)}}
 @media (prefers-color-scheme:light){svg{${vars(TOKENS.light)}}}
 text{font-family:'JetBrains Mono','Fira Code',ui-monospace,Consolas,monospace;font-size:13px;white-space:pre;fill:var(--text)}
 .card{fill:var(--bg2);stroke:var(--border)}
@@ -81,26 +110,29 @@ text{font-family:'JetBrains Mono','Fira Code',ui-monospace,Consolas,monospace;fo
 .title{fill:var(--cyan);font-weight:700;letter-spacing:1px;filter:drop-shadow(0 0 4px var(--cyan))}
 .species{fill:var(--magenta);font-size:16px;font-weight:700;filter:drop-shadow(0 0 4px var(--magenta))}
 .t1{fill:var(--text)}.t3{fill:var(--text3)}
-.pet text{fill:var(--petc);font-size:${FONT}px}
+.body{fill:var(--petc)}.detail{fill:var(--detc)}
+.ghost{fill:url(#lcd)}
 .pet{filter:drop-shadow(0 0 3px var(--petc))}
+.frame{opacity:0}.f0{opacity:1}
+${sprite.css}
 .seg{fill:var(--border)}.seg.on{fill:var(--mood);filter:drop-shadow(0 0 3px var(--mood))}
 .status{fill:var(--mood)}.prompt{fill:var(--electric)}
 .scan{fill:url(#scan);pointer-events:none}
-.alive .pet{animation:bob 2.4s ease-in-out infinite}
+.alive .pet{animation:bob 1.6s step-end infinite}
 .cursor{animation:blink 1s step-end infinite}
-@keyframes bob{50%{transform:translateY(-${(LINE * 0.25).toFixed(1)}px)}}
+@keyframes bob{50%{transform:translateY(-${PX}px)}}
 @keyframes blink{50%{opacity:0}}
 @media (prefers-color-scheme:light){.title,.species,.pet,.seg.on{filter:none}}
-@media (prefers-reduced-motion:reduce){.alive .pet,.cursor{animation:none}}
+@media (prefers-reduced-motion:reduce){.alive .pet,.cursor,.frame{animation:none!important}}
 </style>
-<defs><pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect y="2" width="4" height="2" style="fill:var(--text)" opacity=".05"/></pattern></defs>
+<defs><pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect y="2" width="4" height="2" style="fill:var(--text)" opacity=".05"/></pattern><pattern id="lcd" width="${PX}" height="${PX}" patternUnits="userSpaceOnUse"><rect width="4" height="4" style="fill:var(--text)" opacity=".04"/></pattern></defs>
 <rect class="card" x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="2"/>
 <text class="title" x="16" y="20">// TAMAUIJETTO</text>
 <text class="t3" x="${W - 16}" y="20" text-anchor="end">gen ${pet.generation}</text>
 <line class="rule" x1="0" y1="30.5" x2="${W}" y2="30.5"/>
 <g class="${pet.diedAt ? 'dead' : 'alive'}">
 <rect class="screen" x="16.5" y="42.5" width="220" height="174" rx="2"/>
-${asciiBlock(art, { x: 28, y: 54, w: 196, h: 150 })}
+${sprite.svg}
 <rect class="scan" x="17" y="43" width="219" height="173"/>
 </g>
 <text class="species" x="256" y="64">&gt; ${esc(speciesName)}</text>

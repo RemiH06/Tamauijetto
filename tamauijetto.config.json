@@ -4,6 +4,7 @@
   "species": "amphibia",
   "bornAt": null,
   "petColor": "lime",
+  "detailColor": "magenta",
   "hours": { "hungry": 24, "starving": 72, "dead": 168 },
   "food": { "push": 1, "commit": 1, "commitCap": 10, "pullRequest": 3, "merge": 5 }
 }

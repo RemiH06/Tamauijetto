@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { fetchEvents, nutrition, fromRepo } from './github.js';
 import { validateSpecies, hatch, live, mood } from './pet.js';
-import { renderCard } from './render.js';
+import { renderCard, terminalArt } from './render.js';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const OUT = path.join(ROOT, 'out');
@@ -31,6 +31,9 @@ async function loadConfig() {
   if (!cfg.user) throw new Error('Falta "user" en tamauijetto.config.json.');
   const { hungry, starving, dead } = cfg.hours ?? {};
   if (!(hungry < starving && starving < dead)) throw new Error('"hours" debe cumplir hungry < starving < dead.');
+  for (const key of ['petColor', 'detailColor']) {
+    if (!/^([a-z]+|#[0-9a-f]{3,8})$/i.test(cfg[key] ?? '')) throw new Error(`"${key}" debe ser un token de sherry (lime, cyan…) o un hex.`);
+  }
   if (cfg.bornAt && Number.isNaN(Date.parse(cfg.bornAt))) throw new Error(`"bornAt" no es una fecha ISO válida: ${cfg.bornAt}`);
   return cfg;
 }
@@ -75,10 +78,10 @@ async function run(cfg, species) {
   await mkdir(OUT, { recursive: true });
   await writeFile(statePath, JSON.stringify(next, null, 2) + '\n');
   const m = mood(pet, cfg.hours, now);
-  await writeFile(path.join(OUT, 'tamagotchi.svg'), renderCard({ pet, mood: m, species, speciesName: cfg.species, petColor: cfg.petColor, now }));
+  await writeFile(path.join(OUT, 'tamagotchi.svg'), renderCard({ pet, mood: m, species, speciesName: cfg.species, petColor: cfg.petColor, detailColor: cfg.detailColor, now }));
 
   const eaten = meals.reduce((sum, x) => sum + x.food, 0);
-  if (!pet.diedAt) console.log(styleText('green', species[pet.stage].asciiArt));
+  if (!pet.diedAt) console.log(styleText('green', terminalArt(species.sprites[pet.stage].frames[0])));
   console.log(styleText('cyan', `${cfg.species} · gen ${pet.generation} · ${pet.stage} · comida ${pet.food} (+${eaten} en ${meals.length} eventos nuevos) · ${m.state}`));
 }
 
@@ -97,7 +100,7 @@ async function preview(cfg, species) {
     ['_dead', { ...last, lastFedAt: ago(cfg.hours.dead + 1), diedAt: ago(1) }],
   );
   for (const [name, pet] of cards) {
-    await writeFile(path.join(dir, `${name}.svg`), renderCard({ pet, mood: mood(pet, cfg.hours, now), species, speciesName: cfg.species, petColor: cfg.petColor, now }));
+    await writeFile(path.join(dir, `${name}.svg`), renderCard({ pet, mood: mood(pet, cfg.hours, now), species, speciesName: cfg.species, petColor: cfg.petColor, detailColor: cfg.detailColor, now }));
   }
   console.log(`${cards.length} tarjetas en ${path.relative(ROOT, dir)}`);
 }

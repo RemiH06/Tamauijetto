@@ -69,12 +69,16 @@ Para correrlo en local, el token sale de la variable `GITHUB_TOKEN` o del archiv
 - Comida por push, commit y pull request, configurable.
 - Hambre, agonía y muerte por inactividad; renace como nueva generación.
 - Evolución con ramas aleatorias que se deciden una sola vez y quedan guardadas.
-- Tarjeta SVG con la piel `sherry` de iroFactory, modo claro u oscuro según el sistema y animación que respeta `prefers-reduced-motion`.
-- Especies como JSON en `species/`: etapas, comida para evolucionar, probabilidades y arte ASCII.
+- Tarjeta SVG con la piel `sherry` de iroFactory: pantalla LCD con glow neón, modo claro u oscuro según el sistema y animación que respeta `prefers-reduced-motion`.
+- Especies como JSON en `species/`, todas con el mismo estándar para que las etapas se vean del mismo mundo y el crecimiento se note:
+  - `"size": 32` y cada etapa en `sprites.<etapa>` como cuadrícula de 32 filas por 32 caracteres: `.` vacío, `#` cuerpo (`petColor`), `*` detalle (`detailColor`).
+  - Varios cuadros por etapa (`frames`) con su duración en segundos (`timing`); así parpadea: el segundo cuadro es el mismo sprite con los ojos cerrados.
+  - Mismo tamaño de píxel en todas las etapas: el huevo ocupa poco y la forma final llena la pantalla.
+  - Un rasgo común por linaje (en amphibia, los ojos huecos de 2×2 desde el huevo).
 
 ## Future Features
 
-- Más especies (`plant` ya tiene etapas, falta el arte).
+- Más especies (`plant` ya tiene etapas, faltan los sprites).
 
 ## Autoría
 
