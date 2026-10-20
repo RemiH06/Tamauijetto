@@ -1,7 +1,8 @@
 import { SPRITE_SIZE } from './pet.js';
 
 // Tarjeta SVG con la piel de iroFactory · sherry: neón sobre negro casi
-// puro, monoespaciada, glow en oscuro y scanlines de CRT. Los tokens son
+// puro, monoespaciada y con scanlines de CRT. El glow en oscuro es solo
+// de la pantalla (sprite y barra de vida); el texto va plano. Los tokens son
 // los de 37.iroFactory/sherry/sherry.css (oscuro default, claro por
 // prefers-color-scheme). GitHub sirve el SVG como <img>: no carga fuentes
 // externas ni JS, así que todo va inline y la fuente cae a la mono local.
@@ -107,8 +108,8 @@ text{font-family:'JetBrains Mono','Fira Code',ui-monospace,Consolas,monospace;fo
 .card{fill:var(--bg2);stroke:var(--border)}
 .screen{fill:var(--bg);stroke:var(--border)}
 .rule{stroke:var(--border)}
-.title{fill:var(--cyan);font-weight:700;letter-spacing:1px;filter:drop-shadow(0 0 4px var(--cyan))}
-.species{fill:var(--magenta);font-size:16px;font-weight:700;filter:drop-shadow(0 0 4px var(--magenta))}
+.title{fill:var(--cyan);font-weight:700;letter-spacing:1px}
+.species{fill:var(--magenta);font-size:16px;font-weight:700}
 .t1{fill:var(--text)}.t3{fill:var(--text3)}
 .body{fill:var(--petc)}.detail{fill:var(--detc)}
 .ghost{fill:url(#lcd)}
@@ -122,7 +123,7 @@ ${sprite.css}
 .cursor{animation:blink 1s step-end infinite}
 @keyframes bob{50%{transform:translateY(-${PX}px)}}
 @keyframes blink{50%{opacity:0}}
-@media (prefers-color-scheme:light){.title,.species,.pet,.seg.on{filter:none}}
+@media (prefers-color-scheme:light){.pet,.seg.on{filter:none}}
 @media (prefers-reduced-motion:reduce){.alive .pet,.cursor,.frame{animation:none!important}}
 </style>
 <defs><pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect y="2" width="4" height="2" style="fill:var(--text)" opacity=".05"/></pattern><pattern id="lcd" width="${PX}" height="${PX}" patternUnits="userSpaceOnUse"><rect width="4" height="4" style="fill:var(--text)" opacity=".04"/></pattern></defs>
