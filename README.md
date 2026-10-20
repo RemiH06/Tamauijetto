@@ -22,6 +22,8 @@ Tamauijetto es un tamagotchi que vive de tu actividad en GitHub. Cada push, comm
 
 Un workflow de GitHub Actions lo revisa cada hora y publica una tarjeta SVG (piel `sherry` de iroFactory) en la rama `pet`, lista para incrustarse en cualquier README.
 
+La misma especie vive en dos lados: aquí come de GitHub y sale como tarjeta, y en el tema `sherry` de [iroFactory](https://remih06.github.io/iroFactory/) un Tamauijetto camina sobre la terminal de la página y come de lo que hagas ahí. Las reglas del ciclo de vida son las mismas; lo que cambia es la comida.
+
 ```diff
 - La API de eventos de GitHub solo guarda 90 días y hasta 300 eventos; el estado recuerda lo que ya se comió, así que el workflow tiene que correr seguido.
 - Sin el secreto TAMA_TOKEN solo cuenta la actividad pública.
@@ -45,7 +47,8 @@ Un workflow de GitHub Actions lo revisa cada hora y publica una tarjeta SVG (pie
    | `repo` | `null` para toda la actividad, o un nombre (`Mapo` u `owner/Mapo`) para un solo repo. |
    | `species` | Archivo de `species/` sin `.json`. |
    | `bornAt` | `null` nace ahora; una fecha ISO hace que nazca antes y se coma la actividad desde ahí. |
-   | `petColor` | Token de sherry (`lime`, `cyan`, `magenta`, `violet`, `electric`, `lavender`) o un hex. |
+   | `petColor` | Token neón que la tarjeta hereda de sherry (`lime`, `cyan`, `magenta`, `violet`, `electric`, `lavender`) o un hex. |
+   | `detailColor` | Igual que `petColor`, para los píxeles de detalle (`*`) del sprite. |
    | `hours` | Horas sin comer para `hungry`, `starving` y `dead`. |
    | `food` | Comida por `push`, por `commit` (máximo `commitCap` por push), por PR abierto (`pullRequest`) y por PR mergeado (`merge`). |
 
@@ -71,12 +74,17 @@ Para correrlo en local, el token sale de la variable `GITHUB_TOKEN` o del archiv
 - Comida por push, commit y pull request, configurable.
 - Hambre, agonía y muerte por inactividad; renace como nueva generación.
 - Evolución con ramas aleatorias que se deciden una sola vez y quedan guardadas.
-- Tarjeta SVG con la piel `sherry` de iroFactory: pantalla LCD con glow neón, modo claro u oscuro según el sistema y animación que respeta `prefers-reduced-motion`.
+- Tarjeta SVG con la piel `sherry` de iroFactory: neón sobre negro casi puro, pantalla LCD con glow, scanlines de CRT, modo claro u oscuro según el sistema y animación que respeta `prefers-reduced-motion`. Los tokens salen de `sherry/sherry.css`; como GitHub sirve el SVG como `<img>`, la tarjeta no carga las fuentes del tema (Doto en los títulos de sherry) y cae a la mono local.
 - Especies como JSON en `species/`, todas con el mismo estándar para que las etapas se vean del mismo mundo y el crecimiento se note:
   - `"size": 32` y cada etapa en `sprites.<etapa>` como cuadrícula de 32 filas por 32 caracteres: `.` vacío, `#` cuerpo (`petColor`), `*` detalle (`detailColor`).
   - Varios cuadros por etapa (`frames`) con su duración en segundos (`timing`); así parpadea: el segundo cuadro es el mismo sprite con los ojos cerrados.
   - Mismo tamaño de píxel en todas las etapas: el huevo ocupa poco y la forma final llena la pantalla.
   - Un rasgo común por linaje (en amphibia, los ojos huecos de 2×2 desde el huevo).
+- La especie se comparte con el tema `sherry` de iroFactory, donde el Tamauijetto vive sobre la terminal de la página (comandos `pet`, `feed` y `play`, se deja acariciar y aparece en el arranque tipo BIOS):
+  - `species/amphibia.json` es el mismo archivo que `assets/data/sherry/amphibia.json` de allá; al redibujar sprites o cambiar etapas hay que copiarlo a los dos lados.
+  - El puerto web (`shared/components/sherry/pet.js`) repite el ciclo de vida tal cual (24 h con hambre, 72 agonizando, 168 muerto y renace en la generación siguiente) y solo cambia de qué come: la actividad de la página, un bocado cada 20 s como mucho, `feed` una vez por minuto y un banquete al cerrar el circuito del taller.
+  - Allá las ramas de evolución se inclinan por lo que más se usa (regex y JSON llevan a la rana hechicera, terminal y soldadura a la salamandra reina, neón al ajolote astral); aquí siguen siendo puro azar.
+  - Son vidas aparte: esa guarda su estado en el navegador (`sherry:pet`), esta en la rama `pet` del repo.
 
 ## Future Features
 
