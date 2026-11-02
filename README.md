@@ -7,7 +7,7 @@
    ██║   ██╔══██║██║╚██╔╝██║██╔══██║██║   ██║██║██   ██║██╔══╝     ██║      ██║   ██║   ██║
    ██║   ██║  ██║██║ ╚═╝ ██║██║  ██║╚██████╔╝██║╚█████╔╝███████╗   ██║      ██║   ╚██████╔╝
    ╚═╝   ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝ ╚════╝ ╚══════╝   ╚═╝      ╚═╝    ╚═════╝ 
-       by Hex (@RemiH06)          version 2.0
+       by RemLam (@RemiH06)          version 2.0
 ```
 
 ![MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
@@ -92,4 +92,4 @@ Para correrlo en local, el token sale de la variable `GITHUB_TOKEN` o del archiv
 
 ## Autoría
 
-por Hex ([@RemiH06](https://github.com/RemiH06))
+por RemLam ([@RemiH06](https://github.com/RemiH06))
